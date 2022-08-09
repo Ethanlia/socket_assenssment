@@ -1,0 +1,9 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/mnt/hgfs/CPE.mnt/socket_assenssment'
+gcc src/data_collection.c -o src/data_collection.o -I./include   -c 
+gcc src/log.c -o src/log.o -I./include   -c 
+gcc src/mian.c -o src/mian.o -I./include   -c 
+gcc src/func.c -o src/func.o -I./include   -c 
+gcc  src/data_collection.o src/log.o src/mian.o src/func.o -o bin/main -I./include  
+make: Leaving directory '/mnt/hgfs/CPE.mnt/socket_assenssment'
+ 

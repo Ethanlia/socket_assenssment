@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.txt": "yaml",
+			"log.h": "c",
+			"time.h": "c",
+			"stdio.h": "c"
+		}
+	}
+}
