@@ -460,33 +460,36 @@ P_Queue log_Display(P_Queue log_que)
     dataType  index_read = 0;
     dataType  num_read   = 0;
 
-    /* 查找队头*/
-    log_index = log_Load(log_que) ;
+    while ( fgets(linebuffer[n], MAX_DATA, fp) )
+    {
 
-   
-
-    if (QUEUEMAX >= log_index) {
-        sprintf(str_temp, "cat ../log.txt");
-        // printf("str_temp = %s\n", str_temp);
-        system(str_temp);
-        memset(str_temp, 0, sizeof(str_temp));  
+        n ++;
+        log_cnt = n;
+        printf("log_cnt:%d\n", log_cnt);
+        
     }
+        if (QUEUEMAX > log_cnt) {
+            sprintf(str_temp, "cat ../log.txt");
+            // printf("str_temp = %s\n", str_temp);
+            system(str_temp);
+            memset(str_temp, 0, sizeof(str_temp));  
+        }
+        else{
+            log_index = log_Load(log_que) + 1;
+            printf("log_index:%d\n", log_index);
 
-    log_index = log_Load(log_que) +1;
-    printf("log_index:%d\n", log_index);
-
-    for (size_t i = 0; i < QUEUEMAX; i++){
-        if (QUEUEMAX < log_index) {
-            log_index -= QUEUEMAX ;
-        }                                       
-        sprintf(str_temp, " sed -n '%dp' ../log.txt", log_index);
-        // printf("str_temp = %s\n", str_temp);
-        system(str_temp);
-        memset(str_temp, 0, sizeof(str_temp));  
-        log_index ++;
-    }
+            for (size_t i = 0; i < QUEUEMAX; i++){
+                if (QUEUEMAX < log_index) {
+                    log_index -= QUEUEMAX ;
+                }                                       
+                sprintf(str_temp, " sed -n '%dp' ../log.txt", log_index);
+                // printf("str_temp = %s\n", str_temp);
+                system(str_temp);
+                memset(str_temp, 0, sizeof(str_temp));  
+                log_index ++;
+            }      
+        }
 }
-
 /**
  * @name         : log_window
  * @brief        : log加载界面
