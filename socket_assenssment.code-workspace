@@ -6,10 +6,14 @@
 	],
 	"settings": {
 		"files.associations": {
-			"*.txt": "yaml",
+			"*.txt": "txt",
 			"log.h": "c",
 			"time.h": "c",
-			"stdio.h": "c"
+			"stdio.h": "c",
+			"socket.h": "c",
+			"tcp.h": "c",
+			"features.h": "c",
+			"data.h": "c"
 		}
 	}
 }

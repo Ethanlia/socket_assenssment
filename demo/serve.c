@@ -5,12 +5,14 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
-
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
 #include <sys/time.h>
+
+#include "log.h"
+#include "data.h"
 
 #define  QUECTEL_TIME_MAX_LEN     128
 #define  QUECTEL_MSG_MAX_LEN      128
@@ -70,6 +72,7 @@ int main(int argc, char *argv[])
 
      //  当链接成功 则返回一个已经链接的套接字 
     printf("📢  链接成功!!!\n");
+    
     
     char * msg =  calloc(1, QUECTEL_MSG_MAX_LEN);
 
@@ -134,7 +137,7 @@ int main(int argc, char *argv[])
                 printf("📢  链接成功!!!\n");
             }
             printf("msg:%s \n" , msg);
-        }
+            
         
         if( FD_ISSET(STDIN_FILENO , &set))
         {

@@ -11,7 +11,7 @@ int func_window()
 {
     
 
-    system("clear");
+    // system("clear");
     printf("|***********功能选择界面***********|\n");
     printf("|       1：文件保存log功能         |\n");
     printf("|       2：数据采集功能            |\n");

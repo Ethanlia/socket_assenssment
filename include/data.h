@@ -23,7 +23,7 @@ float get_average(int arr[], int len);
 void data_collection_window();
 
 //收集数据
-dataType data_collect();
+dataType data_collect( char * msg );
 
 //中值滤波输出
 dataType median_filter();

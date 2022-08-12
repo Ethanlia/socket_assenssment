@@ -67,16 +67,16 @@ dataType QueueEmpty(Queue *log_que);
 dataType QueueSize(Queue *log_que);
 
 // 读取log文件
-dataType log_Load();
+dataType log_Load(Queue *log_que);
 
 // 保存log文件
-P_Queue log_save(P_Queue log_que);
+P_Queue log_save(P_Queue log_que, char * num);
 
 // log加载界面
 dataType log_window();
 
 // 
-P_Queue log_Display(P_Queue log_que);
+P_Queue log_Display(P_Queue log_que, char (*linebuffer)[128]);
 
 int log_function(P_Queue log_que);
 

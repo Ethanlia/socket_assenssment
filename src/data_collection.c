@@ -3,9 +3,9 @@
 #include "data.h"
 
 int collect_ret = 0;
-int data_buf [10] = {0};
+int data_buf [10] ;
 
-#define INFO "请连续采集10个数据 每个数据以, 分隔 如输入值为110, 10, 1, 5, 123, 48, 1, 2, 3, 99\n"
+// #define INFO "请连续采集10个数据 每个数据以, 分隔 如输入值为110, 10, 1, 5, 123, 48, 1, 2, 3, 99\n"
 
 //冒泡排序
 void bubble_sort(int arr[], int len) 
@@ -58,17 +58,34 @@ void data_collection_window()
     printf("|***********************************|\n");
 }
 
-dataType data_collect()
+dataType data_collect( char * msg )
 {
-    
-    printf(INFO);
-    scanf("%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d",
+    // // printf(INFO);]    
+    printf("msg:%s", msg);
+    printf("%d\n",__LINE__);
+     for (size_t i = 0; i < (int)strlen(msg); i++){
+        if (',' == msg[i]) {
+            msg[i] = ' ';
+        }
+    }
+    printf("msg:%s", msg);
+    sscanf(msg, "%d %d %d %d %d %d %d %d %d %d",
         &data_buf[0], &data_buf[1], &data_buf[2], &data_buf[3], &data_buf[4],
         &data_buf[5], &data_buf[6], &data_buf[7], &data_buf[8], &data_buf[9]
     );
-
+    
+    // scanf("%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d",
+    //     &data_buf[0], &data_buf[1], &data_buf[2], &data_buf[3], &data_buf[4],
+    //     &data_buf[5], &data_buf[6], &data_buf[7], &data_buf[8], &data_buf[9]
+    // );
+    // printf("%d\n",__LINE__);
+    for (size_t i = 0; i < 10; i++)
+    {
+        printf("%d\n ", data_buf[i]);
+    }
+    // printf("%d\n",__LINE__);
     bubble_sort(data_buf, 10);
-
+    // printf("%d\n",__LINE__);
     for (size_t i = 0; i < 10; i++)
     {
         printf("%d\t ", data_buf[i]);
@@ -83,44 +100,44 @@ dataType median_filter()
     printf("中值:%.3f\n", get_average(data_buf, 10));
 }
 
-dataType data_collection()
-{
-    dataType collect_sel = -1;
+// dataType data_collection()
+// {
+//     dataType collect_sel = -1;
 
-    while (1)
-    {
-        data_collection_window();
+//     while (1)
+//     {
+//         data_collection_window();
 
-        collect_ret = scanf("%d", &collect_sel);
-        if (-1 == collect_ret)
-        {
-            printf("请重新输入!\n");
-            return collect_sel;
-        }
-        else
-        {
-            getchar();
-        }
+//         collect_ret = scanf("%d", &collect_sel);
+//         if (-1 == collect_ret)
+//         {
+//             printf("请重新输入!\n");
+//             return collect_sel;
+//         }
+//         else
+//         {
+//             getchar();
+//         }
 
-        switch (collect_sel)
-        {
-            case 1:
-                data_collect();
+//         switch (collect_sel)
+//         {
+//             case 1:
+//                 data_collect();
 
-                continue;
-                //break;
+//                 continue;
+//                 //break;
 
-            case 2:
+//             case 2:
                 
-                median_filter();
+//                 median_filter();
 
-                continue;
-                //break;
+//                 continue;
+//                 //break;
 
-            default:
+//             default:
 
-                return 0;
-        }
-    }
+//                 return 0;
+//         }
+//     }
     
-}
+// }

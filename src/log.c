@@ -7,6 +7,8 @@
  */
 #include <time.h>
 #include <sys/time.h>
+#include <stdint.h>
+#include <time.h>
 #include "log.h"
 
 dataType log_ret = -1;
@@ -24,8 +26,47 @@ char linebuffer[QUEUEMAX][128]= {0};
 
 #define LOGPATH "../log.txt"
 
+uint64_t GetSysTimeCnt_ms(void)
+{
+    struct timeval tmp;
+    gettimeofday(&tmp, NULL);
+    return (tmp.tv_sec * 1000 + tmp.tv_usec / 1000);
+}
 
+int shell_cmd_send(char *cmd, char *res_vec, uint32_t len, uint32_t timeout)
+{
 
+    FILE  *fp = NULL;
+    uint64_t timeout_tick = 0;
+
+    if (cmd == NULL) {
+        printf("popen cmd is NULL");    
+        return -1;
+    }
+
+    fp = popen(cmd, "r");
+    if (NULL == fp) {
+        printf("exec cmd failed");
+        return -1;
+    }
+
+    //清空缓冲区
+    memset(res_vec, 0, len);
+    timeout_tick = GetSysTimeCnt_ms();
+
+    //收返回值
+    while (fgets(&res_vec[strlen(res_vec)], len - strlen(res_vec) - 1, fp) != NULL)
+    {
+        //检查超时
+        if (GetSysTimeCnt_ms() - timeout_tick > timeout) {
+            break;
+        }
+        usleep(1000);
+    }
+
+    pclose(fp);
+    return strlen(res_vec);
+}
 
 /**
  * @name         : QueueInit
@@ -42,8 +83,6 @@ P_Queue QueueInit(P_Queue log_que)
 
     return log_que;
 }
-
-
 
 /**
  * @name         : QueueDestory
@@ -84,7 +123,6 @@ P_Queue QueuePush(P_Queue log_que, dataType log_num)
         printf("内存不足!\n");
         exit(-1);
     }
-
     
     newnode->_data = log_num;   //新节点储存数据
     newnode->_next = NULL;      //新节点的下一个指向NULL，即新节点作为队尾
@@ -97,8 +135,6 @@ P_Queue QueuePush(P_Queue log_que, dataType log_num)
         log_que->_tail->_next = newnode;
         log_que->_tail = newnode;
     }
-
-    
     return log_que;
 }
 
@@ -239,21 +275,13 @@ dataType log_Load(Queue *log_que )
     
     dataType n = 0;
     
-    fp = fopen(LOGPATH, "r+");
+    fp = fopen(LOGPATH, "a+");
        
 
     char *buff = (char *)malloc(64 * 64);
 
     while ( fgets(buff, 63, fp) )
     {
-        // printf("%d\n",__LINE__);
-        // if (0 != feof(fp)) {
-        //     break;
-        // }
-
-        // if ( NULL == p ) {
-        //     perror("fgets error>>>>>>");
-        // }
         printf("buff:%s\n",buff);
         // printf("%d\n",__LINE__);
         sscanf(buff, "%s %s %s %s %s %d", str_temp, date_tmp, time_tmp, str_temp, str_temp, &num);
@@ -280,7 +308,6 @@ dataType log_Load(Queue *log_que )
 
         memset(buff, 0, sizeof(buff));
     }
-    
 
     free(buff);
     ret = fclose(fp);
@@ -288,7 +315,6 @@ dataType log_Load(Queue *log_que )
     {
         perror("fclose error>>>>");
     }
-    
 
     (que->_flag) = que->_head;
     int min=0 , cnt = 0;
@@ -329,7 +355,7 @@ dataType log_Load(Queue *log_que )
  * @param         {P_Queue} log_que
  * @return        {P_Queue} log_que
  */
-P_Queue log_save(P_Queue log_que)
+P_Queue log_save(P_Queue log_que, char * num)
 {
     struct timeval      tv_log;
     struct  tm         *tm_ptr;
@@ -341,23 +367,10 @@ P_Queue log_save(P_Queue log_que)
  
     tm_ptr = localtime(&tv_log.tv_sec);
 
-    printf("请输入要保存的数:\n");
-    log_ret = scanf("%d", &log_num);
-    if (log_ret)
-    {
-        getchar();
-    }
-    else
-    {
-        printf("请输入数字!\n");
-
-        return 0;
-    }
-
-    
+    sscanf(num, "%d", &log_num);
 
     FILE *fp;
-    fp = fopen(LOGPATH, "r");
+    fp = fopen(LOGPATH, "r+");
     if (NULL == fp)
     {
         perror("open log.txt error>>>");
@@ -368,19 +381,20 @@ P_Queue log_save(P_Queue log_que)
     dataType n = 0;
     
     /* code */
-    while ( fgets(linebuffer[n], MAX_DATA, fp) )
-    {
-
+    while ( NULL != fgets(linebuffer[n], MAX_DATA, fp) )
+    {  
         n ++;
         log_cnt = n;
         printf("log_cnt:%d\n", log_cnt);
-        
+    //     if (log_cnt > 10) {
+    //         log_cnt = 10;
+    //     }
     }
     // printf("line:%d\n",__LINE__);
     
     
     fclose(fp);
-
+    printf("log_cnt:%d\n", log_cnt );
     if (log_cnt < QUEUEMAX)
     {
         QueuePush(log_que, log_num);
@@ -407,10 +421,9 @@ P_Queue log_save(P_Queue log_que)
 
         // fclose(fp);       
     }
-    else
+    else 
     {
         log_index = log_Load(log_que);
-
         QueuePop(log_que);
         QueuePush(log_que, log_num);
 
@@ -431,8 +444,8 @@ P_Queue log_save(P_Queue log_que)
             tm_ptr->tm_hour, tm_ptr->tm_min, tm_ptr->tm_sec);
         // printf("len:%ld\n", strlen(time_tmp));
         // printf("date:%s\n", time_tmp);
-
-        // sprintf(str_temp, "sed  '%s get_num= %d' >> %s ", time_tmp, log_que->_tail->_data, LOGPATH);
+        // sprintf(str_temp, "sed '%s get_num= %d' >> %s ", time_tmp, log_que->_tail->_data, LOGPATH);
+        
         sprintf(str_temp, "  sed -i '%dc %s get_num= %d ' %s ",log_que->_tail->_index , time_tmp, log_que->_tail->_data, LOGPATH);
         printf("str_temp = %s\n", str_temp);
         system(str_temp);
@@ -447,7 +460,7 @@ P_Queue log_save(P_Queue log_que)
  * @name         : log_Display
  * @brief        : 打印log
  */
-P_Queue log_Display(P_Queue log_que)
+P_Queue log_Display(P_Queue log_que, char (*linebuffer)[128] )
 {
     int n = 0;
     FILE *fp = fopen(LOGPATH, "r");
@@ -460,7 +473,7 @@ P_Queue log_Display(P_Queue log_que)
     dataType  index_read = 0;
     dataType  num_read   = 0;
 
-    while ( fgets(linebuffer[n], MAX_DATA, fp) )
+    while ( NULL != fgets(linebuffer[n], MAX_DATA, fp) )
     {
 
         n ++;
@@ -468,13 +481,27 @@ P_Queue log_Display(P_Queue log_que)
         printf("log_cnt:%d\n", log_cnt);
         
     }
-        if (QUEUEMAX > log_cnt) {
-            sprintf(str_temp, "cat ../log.txt");
+        if ( log_cnt < QUEUEMAX) {
+            // sprintf(str_temp, "cat ../log.txt");
             // printf("str_temp = %s\n", str_temp);
-            system(str_temp);
-            memset(str_temp, 0, sizeof(str_temp));  
+            for (int i = 1; i <= n; i++) {
+                sprintf(str_temp, " sed -n '%dp' ../log.txt", i);
+                log_ret = shell_cmd_send(str_temp, linebuffer[i-1], 128, 100);
+                if (log_ret > 0) {
+                    printf("linebuffer: %s\n", linebuffer[i-1]);
+                }
+                else  {
+                    printf("shell_cmd_send err");
+               
+                }
+            
+                // system(str_temp);
+                
+                memset(str_temp, 0, sizeof(str_temp));  
+            }
         }
         else{
+
             log_index = log_Load(log_que) + 1;
             printf("log_index:%d\n", log_index);
 
@@ -484,7 +511,17 @@ P_Queue log_Display(P_Queue log_que)
                 }                                       
                 sprintf(str_temp, " sed -n '%dp' ../log.txt", log_index);
                 // printf("str_temp = %s\n", str_temp);
-                system(str_temp);
+                // system(str_temp);
+
+                log_ret = shell_cmd_send(str_temp, linebuffer[i], 128, 100);
+                if (log_ret > 0) {
+                    // printf("log_ret:%d\n", log_ret);
+                    printf("%s\n", linebuffer[i]);
+                }
+                else  {
+                    printf("shell_cmd_send err");
+               
+                }
                 memset(str_temp, 0, sizeof(str_temp));  
                 log_index ++;
             }      
@@ -505,69 +542,73 @@ dataType log_window()
     printf("|**********************************|\n");
 }
 
-/**
- * @name         : log_function
- * @brief        : log功能调用函数， main函数调用
- * @param         {P_Queue} log_que
- * @return        0
- */
-int log_function(P_Queue log_que)
-{
-    dataType log_sel = -1;
+// /**
+//  * @name         : log_function
+//  * @brief        : log功能调用函数， main函数调用
+//  * @param         {P_Queue} log_que
+//  * @return        0
+//  */
+// int log_function(P_Queue log_que)
+// {
+//     dataType log_sel = -1;
 
-    while (1)
-    {
-        log_window();
+//     while (1)
+//     {
+//         log_window();
 
-        log_ret = scanf("%d", &log_sel);
-        if (-1 == log_ret)
-        {
-            printf("请重新输入!\n");
-            return log_ret;
-        }
-        else
-        {
-            getchar();
-        }
-        printf("puts:%d\n", log_sel);
+//         log_ret = scanf("%d", &log_sel);
+//         if (-1 == log_ret)
+//         {
+//             printf("请重新输入!\n");
+//             return log_ret;
+//         }
+//         else
+//         {
+//             getchar();
+//         }
+//         printf("puts:%d\n", log_sel);
 
-        switch (log_sel)
-        {
-            case 1:
-                log_save(log_que);
+//         switch (log_sel)
+//         {
+//             case 1:
+//                 log_save(log_que, log_num);
 
-                break;
+//                 break;
 
-            case 2:
-                log_Display(log_que);
+//             case 2:
+//                 log_Display(log_que,linebuffer);
                 
-                break;
+//                 // for (size_t i = 0; i < QUEUEMAX; i++){
+//                 //    printf("linebuffer: %s\n", linebuffer[i]);
+//                 // }
+                
+//                 break;
 
-            default:
+//             default:
 
-                // log_que->_tail->_load_flag = 0;
-                QueueDestory(log_que);
-                return 0;
-        }
-    }
+//                 // log_que->_tail->_load_flag = 0;
+//                 QueueDestory(log_que);
+//                 return 0;
+//         }
+//     }
 
-    // QueueDestory(log_que);
-    // return 0;
-}
+//     // QueueDestory(log_que);
+//     // return 0;
+// }
 
 
 
-int main(int argc, char const *argv[])
-{
+// int main(int argc, char const *argv[])
+// {
 
-    P_Queue log_que = calloc(1, 1024);
-    // P_Queue log_que ;
-    QueueInit(log_que);
+//     P_Queue log_que = calloc(1, 1024);
+//     // P_Queue log_que ;
+//     QueueInit(log_que);
 
-    log_function(log_que);
+//     log_function(log_que);
 
-    QueueDestory(log_que);
+//     QueueDestory(log_que);
 
     
-    return 0;
-}
+//     return 0;
+// }
