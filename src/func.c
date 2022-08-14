@@ -9,8 +9,6 @@
 
 int func_window()
 {
-    
-
     // system("clear");
     printf("|***********功能选择界面***********|\n");
     printf("|       1：文件保存log功能         |\n");

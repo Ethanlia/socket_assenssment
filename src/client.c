@@ -10,6 +10,9 @@
 #include <arpa/inet.h>
 #include <time.h>
 #include <sys/time.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <sys/ioctl.h>
 
 #include "log.h"
 #include "data.h"
@@ -19,6 +22,8 @@
 #define QUECTEL_MSG_MAX_LEN       128
 
 #define INFO "请连续采集10个数据 每个数据以, 分隔 如输入值为110, 10, 1, 5, 123, 48, 1, 2, 3, 99\n"
+#define CLIENT_RESPOND_ALIVE      "alive"
+
 
 
 int main(int argc, char *argv[])
@@ -27,6 +32,8 @@ int main(int argc, char *argv[])
     int connfd = -1;
     int read_ret,send_ret,log_ret;
     int log_num;
+    int time_cnt = 0;
+    
 
 
     char buff[QUECTEL_TIME_MAX_LEN];
@@ -44,25 +51,17 @@ int main(int argc, char *argv[])
         exit(0);
     }
     
-  
-    
     server_addr.sin_family=AF_INET;
     server_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-    server_addr.sin_port=htons(9980);
-    // server_addr.sin_port=inet_addr("10.55.20.110"); 
+    server_addr.sin_port=htons(13910);
+    // server_addr.sin_port=inet_addr("10.55.36.137"); 
     
     client_addr.sin_family=AF_INET;
     // client_addr.sin_addr.s_addr=htonl(INADDR_ANY);
-    client_addr.sin_addr.s_addr=inet_addr("10.55.32.245");
-    client_addr.sin_port=htons(9981);
+    client_addr.sin_addr.s_addr=inet_addr("10.55.36.138");
+    client_addr.sin_port=htons(13911);
     
-    /* // 绑定
-
-    if(bind(connectfd, (struct sockaddr *)(&client_addr), addrlen) == -1)
-    {
-        printf("bind error:%s %d",strerror(errno), errno);exit(0);
-    } */
-    
+    // 绑定  
     socklen_t  addrlen  = sizeof(struct sockaddr_in);
     inet_ntop (AF_INET, &client_addr.sin_addr.s_addr, Addr, sizeof(Addr));
     
@@ -81,7 +80,13 @@ int main(int argc, char *argv[])
     }
 
     char * msg =  calloc(1, QUECTEL_MSG_MAX_LEN);
-    
+
+    // pthread_t tid_Beat;
+
+    // int err = pthread_create(&tid_Beat, NULL, Beat_pack, NULL);
+    //     if (err != 0) {
+    //         printf("can't create thread: %s\n", strerror(err));
+    //     } 
 
     while (1)
     {
@@ -103,19 +108,30 @@ int main(int argc, char *argv[])
         // 设置多路复用 监听标准输入以及已链接套接字   ， 超时设置为20秒
         int ret_val = select( max_fd + 1 , &set, NULL , NULL , &timeout);
         // usleep(5*1000*100);
+        
+        // pthread_join(tid_Beat, NULL);
         if (0 == ret_val)  // 超时
         {
             printf("⚠️  超时警告！！！\n");
+            time_cnt += 1;
+            if (3 == time_cnt) {
+                for (size_t i = 0; i < 5; i++)
+                {
+                    memset(msg, 0, sizeof(msg));
+                    strcpy(msg, CLIENT_RESPOND_ALIVE);
+                    send(connectfd, msg, sizeof(msg), 0);
+                    sleep(1);
+                    /* code */
+                }
+                
+                
+            }
             continue ;
         }else if (-1 == ret_val) // 出错
         {
             perror("select error>>>>");
             continue ;
         }
-
-        // else{
-        //     // printf("📢  有数据流...\n");
-        // }
 
         // 检查哪个文件的数据到达
         if( FD_ISSET(connectfd , &set))
@@ -171,20 +187,22 @@ int main(int argc, char *argv[])
                         fgets(msg , QUECTEL_MSG_MAX_LEN , stdin);
                         printf("msg:%s", msg);
                         send(connectfd , msg, strlen(msg) , 0 );
-                        // ret_val = send(connectfd , msg, strlen(msg) , 0 );
-                        // if ( ret_val > 0 )
-                        // {
-                        //     printf("📢  成功发送%d字节\n" , ret_val );                
-                        // }
-                        // data_collect(msg);
-                        break;
+                        
                     default:
-                         break;
+                        break;
                 }   
+                continue;
             }
             else if (0 == strncmp(msg, "ok",strlen("ok"))) {
                 /* code */
                 func_window();
+                continue;
+            }
+            else if ( 0 == strncmp(msg, "quit",strlen("quit")) ) {
+                shutdown(connectfd, SHUT_RD); //关闭套接字的输入流,并发送返回值
+                // printf("📢  接收到关闭指令,关闭连接...\n");
+                write(connectfd, "Thank you", 10);  //向服务器端发送表示感谢的消息，若服务器端未关闭输入流，则可接收到此消息ret_val
+                continue;
             }
               
             if (0 == strncmp(msg, "alive",sizeof("alive"))){
@@ -193,6 +211,7 @@ int main(int argc, char *argv[])
                 sprintf(msg, "alive!");
                 usleep(5*1000*10);
                 send(connectfd , msg, strlen(msg) , 0 );//响应心跳探活
+                continue;
                 // printf("line:%d\n",__LINE__);
                 // write(connectfd, msg,sizeof(msg));  //响应心跳探活
             }           
@@ -212,11 +231,7 @@ int main(int argc, char *argv[])
             else{
                 perror("send  error>>");
                 continue ;
-            }
-
-
-        
-            
+            }           
         }
 
     }
