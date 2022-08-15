@@ -1,9 +1,9 @@
-
 #include "log.h"
 #include "data.h"
 
 int collect_ret = 0;
-int data_buf [10] ;
+// int data_buf [10] ;
+
 
 // #define INFO "请连续采集10个数据 每个数据以, 分隔 如输入值为110, 10, 1, 5, 123, 48, 1, 2, 3, 99\n"
 
@@ -26,13 +26,13 @@ void bubble_sort(int arr[], int len)
 }
 
 // 获取最大值
-dataType get_max(int arr[], int len)
+dataType get_max(int * arr, int len)
 {
 	return arr[len - 1];
 }
 
 //获取最小值
-dataType get_min(int arr[], int len)
+dataType get_min(int *arr, int len)
 {
 	return arr[0];
 }
@@ -58,9 +58,9 @@ void data_collection_window()
     printf("|***********************************|\n");
 }
 
-dataType data_collect( char * msg )
+dataType data_collect( char * msg , int * data_buf)
 {
-    // // printf(INFO);]    
+    // printf(INFO);   
     printf("msg:%s", msg);
     printf("%d\n",__LINE__);
      for (size_t i = 0; i < (int)strlen(msg); i++){
@@ -74,10 +74,11 @@ dataType data_collect( char * msg )
         &data_buf[5], &data_buf[6], &data_buf[7], &data_buf[8], &data_buf[9]
     );
     
-    // scanf("%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d[^,]%d",
+    // scanf("%d[^',']%d[^',']%d[^',']%d[^',']%d[^',']%d[^',']%d[^',']%d[^',']%d[^',']%d",
     //     &data_buf[0], &data_buf[1], &data_buf[2], &data_buf[3], &data_buf[4],
     //     &data_buf[5], &data_buf[6], &data_buf[7], &data_buf[8], &data_buf[9]
     // );
+    
     // printf("%d\n",__LINE__);
     for (size_t i = 0; i < 10; i++)
     {
@@ -93,7 +94,7 @@ dataType data_collect( char * msg )
        
 }
 
-dataType median_filter()
+dataType median_filter(int * data_buf)
 {
     printf( "最大值：%d;\n最小值:%d;\n", get_max(data_buf, 10),get_min(data_buf, 10) );
     

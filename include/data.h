@@ -1,3 +1,10 @@
+/*
+ * @Descripttion   : 
+ * @Author         : Ethan.liang
+ * @Date           : 2022-08-15 09:56:10
+ * @LastEditors    : Do not Edit
+ * @LastEditTime   : 2022-08-15 10:00:17
+ */
 
 #ifndef 	__DATA_H__
 #define		__DATA_H__
@@ -19,15 +26,14 @@ dataType get_min(int arr[], int len);
 //中值滤波
 float get_average(int arr[], int len);
 
-
 void data_collection_window();
 
 //收集数据
-dataType data_collect( char * msg );
+dataType data_collect( char * msg , int * data_buf);
 
 //中值滤波输出
-dataType median_filter();
+dataType median_filter(int * data_buf);
 
-dataType data_collection();
+// dataType data_collection();
 
 #endif
