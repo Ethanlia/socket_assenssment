@@ -86,9 +86,7 @@ void func_select(int connfd , int listenfd , P_Queue Queue  )
                     recv(connfd , msg , QUECTEL_MSG_MAX_LEN , 0); // 从套接字获得数据并发送
                     // log_Load(log_que);
                     log_save(log_que, msg);
-                    // memset(buff, 0 , sizeof(buff));
-                    // strcpy(buff, SEND_CLIENT_LOG_OK);
-                    // send(connfd, buff, sizeof(buff),0);
+                    
                 }
                 /* 打印log */
                 else if (2 == ret_val) {
@@ -96,10 +94,7 @@ void func_select(int connfd , int listenfd , P_Queue Queue  )
                     for (size_t i = 0; i < 10; i++){
                         /* code */
                         send(connfd, buff_log[i], sizeof(buff_log[i]),0);;
-                    }
-                    // memset(buff, 0 , sizeof(buff));
-                    // strcpy(buff, SEND_CLIENT_LOG_OK);
-                    // send(connfd, buff, sizeof(buff),0);
+                    }              
                 }
                 /* 退出 */
                 else if (0 == ret_val) {
@@ -115,9 +110,8 @@ void func_select(int connfd , int listenfd , P_Queue Queue  )
                 memset(buff, 0 , sizeof(buff));
                 strcpy(buff, SEND_CLIENT_LOG_OK);
                 send(connfd, buff, sizeof(buff),0);
-                // send(connfd, SEND_CLIENT_LOG_OK, sizeof(SEND_CLIENT_LOG_OK),0);
-                // ret_val = recv(connfd , msg , QUECTEL_MSG_MAX_LEN , 0); // 从套接字获得数据并发送
-            }            
+                           
+                }            
             break;
         /* 数据采集 */
         case 2 :

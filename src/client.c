@@ -3,7 +3,7 @@
  * @Author         : Ethan.liang
  * @Date           : 2022-08-14 20:42:18
  * @LastEditors    : Do not Edit
- * @LastEditTime   : 2022-08-15 09:40:35
+ * @LastEditTime   : 2022-08-15 14:24:22
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -97,9 +97,9 @@ void Client_recv_func(int ret_val , int connectfd, char * msg ,char * Addr)
     }
     else if ( 0 == strncmp(msg, "quit",strlen("quit")) ) {
         shutdown(connectfd, SHUT_RD); //关闭套接字的输入流,并发送返回值
-        // printf("📢  接收到关闭指令,关闭连接...\n");
+        printf("📢  接收到关闭指令,关闭连接...\n");
         write(connectfd, "Thank you", 10);  //向服务器端发送表示感谢的消息，若服务器端未关闭输入流，则可接收到此消息ret_val
-        system("killall client");
+        // system("killall client");
         exit(0);
 
     }   
@@ -137,7 +137,8 @@ int main(int argc, char *argv[])
     
     // 绑定  
     socklen_t  addrlen  = sizeof(struct sockaddr_in);
-    
+    inet_ntop (AF_INET, &client_addr.sin_addr.s_addr, Addr, sizeof(Addr));
+
     if(connect(connectfd, (struct sockaddr *)(&server_addr),addrlen) == -1)
     {
         printf("conect error:%s %d",strerror(errno), errno);
